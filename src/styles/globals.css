@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    &,
+    &.light-mode {
+      --background-app-rgb: 237, 241, 214; /* #edf1d6 */
+      --color-primary: 96, 153, 102; /* #609966 */
+      --color-secondary: 64, 81, 59; /* #40513b */
+      --color-success: 0, 192, 115; /* #00c073 */
+      --color-warning: 255, 153, 0; /* #ff9900 */
+      --color-error: 255, 71, 87; /* #ff4757 */
+    }
+
+    &.dark-mode {
+      --background-app-rgb: 64, 81, 59; /* #40513b */
+      --color-secondary: 237, 241, 214; /* #edf1d6 */
+    }
+  }
+}
