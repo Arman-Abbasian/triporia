@@ -1,0 +1,34 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-background: #edf1d6;
+  --color-primary: #609966;
+  --color-secondary: #40513b;
+  --color-light: #edf1d6;
+  --color-dark: #40513b;
+  --color-success: #00c073;
+  --color-warning: #ff9900;
+  --color-error: #ff4757;
+}
+
+@layer base {
+  :root {
+    &,
+    &.light-mode {
+      --color-background: #edf1d6;
+      --color-primary: #609966;
+      --color-secondary: #40513b;
+      --color-success: #00c073;
+      --color-warning: #ff9900;
+      --color-error: #ff4757;
+    }
+
+    &.dark-mode {
+      --color-background: #40513b;
+      --color-secondary: #edf1d6;
+    }
+  }
+}
+body {
+  background-color: #edf1d6;
+}
