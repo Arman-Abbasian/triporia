@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Place {
+  id          Int       @id @default(autoincrement())
+  name        String
+  country     String
+  city        String
+  description String
+  imageUrl    String
+  likes       Int       @default(0)
+  rating      Float?    // متوسط امتیازات (می‌تونه null باشه در ابتدا)
+  comments    Comment[] // رابطه یک‌به‌چند با مدل Comment
+  createdAt   DateTime  @default(now())
+}
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  place     Place    @relation(fields: [placeId], references: [id])
+  placeId   Int
+}
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  name      String?
+  likes     Like[]
+  bookmarks Bookmark[]
+  ratings   Rating[]
+}
+model Like {
+  id      Int    @id @default(autoincrement())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  Int
+  place   Place  @relation(fields: [placeId], references: [id])
+  placeId Int
+
+  @@unique([userId, placeId])
+}
+model Bookmark {
+  id      Int    @id @default(autoincrement())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  Int
+  place   Place  @relation(fields: [placeId], references: [id])
+  placeId Int
+
+  @@unique([userId, placeId])
+}
+model Rating {
+  id      Int    @id @default(autoincrement())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  Int
+  place   Place  @relation(fields: [placeId], references: [id])
+  placeId Int
+  score   Int
+
+  @@unique([userId, placeId])
+}
