@@ -123,8 +123,38 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.PlaceScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  country: 'country',
+  city: 'city',
   description: 'description',
+  imageUrl: 'imageUrl',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  createdAt: 'createdAt',
+  userId: 'userId',
+  placeId: 'placeId'
+};
+
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name'
+};
+
+exports.Prisma.LikeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  placeId: 'placeId'
+};
+
+exports.Prisma.RatingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  placeId: 'placeId',
+  score: 'score'
 };
 
 exports.Prisma.SortOrder = {
@@ -144,7 +174,11 @@ exports.Prisma.NullsOrder = {
 
 
 exports.Prisma.ModelName = {
-  Place: 'Place'
+  Place: 'Place',
+  Comment: 'Comment',
+  User: 'User',
+  Like: 'Like',
+  Rating: 'Rating'
 };
 
 /**
