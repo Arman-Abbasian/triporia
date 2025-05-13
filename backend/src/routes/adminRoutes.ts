@@ -1,9 +1,13 @@
 import { Router } from 'express'
-const router = Router()
-import placeRoutes from './Place/placeRoutes'
-import commentRoutes from './comment/commentRoutes'
 
+import placeRoutes from './adminRoutes/Place/placeRoutes'
+import commentRoutes from './adminRoutes/comment/commentRoutes'
+import userRoutes from './adminRoutes/user/userRoutes'
+
+const router = Router()
+
+router.use('/user', userRoutes)
 router.use('/place', placeRoutes)
-router.use('/comments', commentRoutes)
+router.use('/comment', commentRoutes)
 
 export default router

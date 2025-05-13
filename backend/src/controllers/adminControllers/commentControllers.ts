@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 
 // Signup controller
-export const signupController = async (req: Request, res: Response) => {
+export const acceptCommentController = async (req: Request, res: Response) => {
   const { name, email, password } = req.body
 
   // TODO: Add validation, hashing, and save user with Prisma
@@ -9,14 +9,23 @@ export const signupController = async (req: Request, res: Response) => {
 }
 
 // Login controller
-export const loginController = async (req: Request, res: Response) => {
+export const removeCommentController = async (req: Request, res: Response) => {
   const { email, password } = req.body
 
   // TODO: Check user, compare password, generate token
   res.status(200).json({ message: 'User logged in successfully' })
 }
 // Login controller
-export const logoutController = async (req: Request, res: Response) => {
+export const getPostCommentsController = async (
+  req: Request,
+  res: Response
+) => {
+  const { email, password } = req.body
+
+  // TODO: Check user, compare password, generate token
+  res.status(200).json({ message: 'User logged in successfully' })
+}
+export const getAllCommentsController = async (req: Request, res: Response) => {
   const { email, password } = req.body
 
   // TODO: Check user, compare password, generate token
