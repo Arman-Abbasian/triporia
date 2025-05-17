@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -35,10 +34,12 @@ model Comment {
 model User {
   id        Int        @id @default(autoincrement())
   email     String     @unique
+  password  String
   name      String?
+  isActive  Boolean
   likes     Like[]
   ratings   Rating[]
-  comments  Comment[]  // 👈 اضافه شد برای رابطه با کامنت‌ها
+  comments  Comment[] 
 }
 
 model Like {
@@ -61,4 +62,3 @@ model Rating {
 
   @@unique([userId, placeId])
 }
-
