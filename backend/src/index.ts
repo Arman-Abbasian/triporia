@@ -7,6 +7,8 @@ import authRoutes from './routes/authRoutes'
 import mainRoutes from './routes/mainRoutes'
 import adminRoutes from './routes/adminRoutes'
 import userRoutes from './routes/userRoutes'
+import path from 'path'
+import { prisma } from '../prisma/client'
 
 dotenv.config()
 
@@ -15,16 +17,26 @@ const port = process.env.PORT || 5000
 
 app.use(cors())
 app.use(express.json())
+app.use('/static', express.static(path.join(__dirname, '..', 'public')))
 
-app.get('/', (req, res) => {
-  res.send('Backend is running 🎉')
-})
+app.use('/api/', mainRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api/user', userRoutes)
 
-app.use('/', mainRoutes)
-app.use('/auth', authRoutes)
-app.use('/admin', adminRoutes)
-app.use('/user', userRoutes)
+async function startServer() {
+  try {
+    // تست اتصال به دیتابیس
+    await prisma.$connect()
+    console.log('✅ Connected to database')
 
-app.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`)
-})
+    app.listen(port, () => {
+      console.log(`🚀 Server running on http://localhost:${port}`)
+    })
+  } catch (err) {
+    console.error('❌ Failed to connect to database', err)
+    process.exit(1) // با خطا خارج شو
+  }
+}
+
+startServer()

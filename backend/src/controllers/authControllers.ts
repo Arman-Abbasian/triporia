@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { sendError, sendSuccess } from '../utils/sendResponses'
-import prisma from '../../prisma/client'
+import { prisma } from '../../prisma/client'
 import { sendActivationEmail } from '../utils/sendActivationEmail'
 
 //singup controller
@@ -26,7 +26,7 @@ export const signupController = async (req: Request, res: Response) => {
         isActive: false,
       },
     })
-
+    console.log(user)
     const activationToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_EMAIL_SECRET as string,
