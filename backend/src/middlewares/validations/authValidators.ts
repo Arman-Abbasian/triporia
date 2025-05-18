@@ -21,6 +21,8 @@ export const signupValidator = [
     .withMessage('Password is required')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters')
+    .isLength({ max: 30 })
+    .withMessage('Password must be maximum 30 characters')
     .matches(/[a-z]/)
     .withMessage('Password must contain at least one lowercase letter')
     .matches(/[A-Z]/)
@@ -32,9 +34,17 @@ export const signupValidator = [
 ]
 
 export const loginValidator = [
-  body('email').isEmail().withMessage('Email is not valid'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Email must be valid'),
 
   body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .trim()
+    .notEmpty()
+    .withMessage('password is required')
+    .isLength({ max: 30 })
+    .withMessage('Password must be maximum 30 characters'),
 ]

@@ -39,7 +39,10 @@ model User {
   isActive  Boolean
   likes     Like[]
   ratings   Rating[]
-  comments  Comment[] 
+  comments  Comment[]
+  activationToken  String?  @unique
+  tokenExpiresAt   DateTime? 
+  createdAt   DateTime  @default(now())
 }
 
 model Like {

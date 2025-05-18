@@ -1,8 +1,9 @@
-import { Router } from 'express'
+import { Router, RequestHandler } from 'express'
 import {
   activateAccountController,
   loginController,
   logoutController,
+  resendActivateLinkController,
   signupController,
 } from '../controllers/authControllers'
 import {
@@ -13,9 +14,23 @@ import { validate } from '../middlewares/validations/validate'
 
 const router = Router()
 
-router.post('/signup', signupValidator, validate, signupController)
-router.get('/activate/:token', activateAccountController)
-router.post('/login', loginValidator, validate, loginController)
-router.get('/logout', logoutController)
+router.post(
+  '/signup',
+  signupValidator as unknown as RequestHandler,
+  validate as RequestHandler,
+  signupController as RequestHandler
+)
+router.get('/activate/:token', activateAccountController as RequestHandler)
+router.post(
+  '/activate/resend-activation',
+  resendActivateLinkController as RequestHandler
+)
+router.post(
+  '/login',
+  loginValidator as unknown as RequestHandler,
+  validate as unknown as RequestHandler,
+  loginController as RequestHandler
+)
+router.get('/logout', logoutController as RequestHandler)
 
 export default router
