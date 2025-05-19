@@ -123,9 +123,40 @@ export const resendActivateLinkController = async (
 export const loginController = async (req: Request, res: Response) => {
   const { email, password } = req.body
 
-  // TODO: Check user, compare password, generate token
-  res.status(200).json({ message: 'User logged in successfully' })
+  try {
+    const user = await prisma.user.findUnique({ where: { email } })
+
+    if (!user) return sendError(res, 'Invalid credentials')
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) return sendError(res, 'Invalid credentials')
+
+    const accessToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_ACCESS_SECRET!,
+      { expiresIn: '1d' }
+    )
+
+    const refreshToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_REFRESH_SECRET!,
+      { expiresIn: '7d' }
+    )
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    })
+
+    sendSuccess(res, 'Login successful', {
+      accessToken,
+      refreshToken,
+    })
+  } catch (error) {
+    sendError(res, 'Login failed', error)
+  }
 }
+
 // logout controller
 export const logoutController = async (req: Request, res: Response) => {
   const { email, password } = req.body

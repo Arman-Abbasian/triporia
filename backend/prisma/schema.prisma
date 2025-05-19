@@ -42,6 +42,7 @@ model User {
   comments  Comment[]
   activationToken  String?  @unique
   tokenExpiresAt   DateTime? 
+  refreshToken String? // Nullable
   createdAt   DateTime  @default(now())
 }
 
