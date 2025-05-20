@@ -1,5 +1,5 @@
 // middleware/auth.ts
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction, RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
 import { sendError } from '../utils/sendResponses'
 import { prisma } from '../../prisma/client'
@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-export const authenticateUser = async (
+export const jwtAuth: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -22,29 +22,27 @@ export const authenticateUser = async (
     const refreshToken = req.cookies.refreshToken
 
     if (!accessToken && !refreshToken) {
-      return sendError(res, 'Authentication required', {}, 401)
+      sendError(res, 'Authentication required', {}, 401)
+      return
     }
 
     // ✅ بررسی accessToken
     try {
       const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET!)
       req.user = decoded
-      return next()
+      next()
+      return
     } catch (err: any) {
       if (err.name !== 'TokenExpiredError') {
-        return sendError(res, 'Invalid access token', {}, 401)
+        sendError(res, 'Invalid access token', {}, 401)
+        return
       }
-      // continue to refresh token logic
     }
 
     // ✅ بررسی refreshToken
     if (!refreshToken) {
-      return sendError(
-        res,
-        'Access token expired. Please login again.',
-        {},
-        401
-      )
+      sendError(res, 'Access token expired. Please login again.', {}, 401)
+      return
     }
 
     const decodedRefresh = jwt.verify(
@@ -57,7 +55,8 @@ export const authenticateUser = async (
     })
 
     if (!userInDb || userInDb.refreshToken !== refreshToken) {
-      return sendError(res, 'Invalid refresh token', {}, 401)
+      sendError(res, 'Invalid refresh token', {}, 401)
+      return
     }
 
     // ✅ ساخت توکن‌های جدید
@@ -67,36 +66,17 @@ export const authenticateUser = async (
       { expiresIn: '15m' }
     )
 
-    const newRefreshToken = jwt.sign(
-      { userId: userInDb.id },
-      process.env.JWT_REFRESH_SECRET!,
-      { expiresIn: '7d' }
-    )
-
-    // ✅ ذخیره refresh جدید در DB
-    await prisma.user.update({
-      where: { id: userInDb.id },
-      data: { refreshToken: newRefreshToken },
-    })
-
     // ✅ ذخیره توکن‌ها در cookie
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 1000, // 1 روز
-    })
-
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 روز
+      maxAge: 15 * 60 * 1000,
     })
 
     req.user = { userId: userInDb.id }
     next()
   } catch (err) {
-    return sendError(res, 'Authentication failed', err, 500)
+    sendError(res, 'Authentication failed', err, 500)
   }
 }

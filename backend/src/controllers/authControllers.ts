@@ -58,67 +58,7 @@ export const signupController = async (req: Request, res: Response) => {
     return
   }
 }
-//user Activate controller
 
-export const activateAccountController = async (
-  req: Request,
-  res: Response
-) => {
-  const { token } = req.params
-
-  const user = await prisma.user.findFirst({
-    where: {
-      activationToken: token,
-      tokenExpiresAt: {
-        gte: new Date(), // بررسی انقضا
-      },
-    },
-  })
-
-  if (!user) {
-    return sendError(res, 'Token is invalid or has expired', 400)
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      isActive: true,
-      activationToken: null,
-      tokenExpiresAt: null,
-    },
-  })
-
-  sendSuccess(res, 'Account activated successfully')
-}
-//resend activate link
-export const resendActivateLinkController = async (
-  req: Request,
-  res: Response
-) => {
-  const { email } = req.body
-
-  const user = await prisma.user.findUnique({ where: { email } })
-
-  if (!user || user.isActive) {
-    return sendError(res, 'User not found or already active', 400)
-  }
-
-  const token = crypto.randomBytes(32).toString('hex')
-  const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      activationToken: token,
-      tokenExpiresAt,
-    },
-  })
-
-  const activationLink = `${process.env.CLIENT_URL}/auth/activate/${token}`
-  await sendActivationEmail(email, activationLink)
-
-  sendSuccess(res, 'Activation email resent')
-}
 // login controller
 export const loginController = async (req: Request, res: Response) => {
   const { email, password } = req.body
@@ -159,8 +99,92 @@ export const loginController = async (req: Request, res: Response) => {
 
 // logout controller
 export const logoutController = async (req: Request, res: Response) => {
-  const { email, password } = req.body
+  try {
+    const refreshToken = req.cookies.refreshToken
 
-  // TODO: Check user, compare password, generate token
-  res.status(200).json({ message: 'User logged in successfully' })
+    if (!refreshToken) {
+      sendError(res, 'No refresh token found', {}, 400)
+      return
+    }
+    const user = await prisma.user.findFirst({
+      where: { refreshToken },
+    })
+
+    if (user) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: null },
+      })
+    }
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+
+    sendSuccess(res, 'Logged out successfully')
+    return
+  } catch (err) {
+    sendError(res, 'Logout failed', err, 500)
+    return
+  }
+}
+
+//user Activate controller
+export const activateAccountController = async (
+  req: Request,
+  res: Response
+) => {
+  const { token } = req.params
+
+  const user = await prisma.user.findFirst({
+    where: {
+      activationToken: token,
+      tokenExpiresAt: {
+        gte: new Date(), // بررسی انقضا
+      },
+    },
+  })
+
+  if (!user) {
+    return sendError(res, 'Token is invalid or has expired', 400)
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isActive: true,
+      activationToken: null,
+      tokenExpiresAt: null,
+    },
+  })
+
+  sendSuccess(res, 'Account activated successfully')
+}
+
+//resend activate link
+export const resendActivateLinkController = async (
+  req: Request,
+  res: Response
+) => {
+  const { email } = req.body
+
+  const user = await prisma.user.findUnique({ where: { email } })
+
+  if (!user || user.isActive) {
+    return sendError(res, 'User not found or already active', 400)
+  }
+
+  const token = crypto.randomBytes(32).toString('hex')
+  const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      activationToken: token,
+      tokenExpiresAt,
+    },
+  })
+
+  const activationLink = `${process.env.CLIENT_URL}/auth/activate/${token}`
+  await sendActivationEmail(email, activationLink)
+
+  sendSuccess(res, 'Activation email resent')
 }

@@ -9,6 +9,8 @@ import adminRoutes from './routes/adminRoutes'
 import userRoutes from './routes/userRoutes'
 import path from 'path'
 import { prisma } from '../prisma/client'
+import { isAdmin } from './middlewares/isAdmin'
+import { jwtAuth } from './middlewares/jwtAuth'
 
 dotenv.config()
 
@@ -20,9 +22,9 @@ app.use(express.json())
 app.use('/static', express.static(path.join(__dirname, '..', 'public')))
 
 app.use('/api/', mainRoutes)
-app.use('/api/auth', authRoutes)
-app.use('/api/admin', adminRoutes)
-app.use('/api/user', userRoutes)
+app.use('/api/auth', jwtAuth, authRoutes)
+app.use('/api/admin', jwtAuth, isAdmin, adminRoutes)
+app.use('/api/user', jwtAuth, userRoutes)
 
 async function startServer() {
   try {

@@ -7,18 +7,30 @@ datasource db {
   url= env("DATABASE_URL")
 }
 
-
+enum Role {
+  USER
+  ADMIN
+}
 model Place {
   id          Int       @id @default(autoincrement())
   name        String
   country     String
   city        String
   description String
-  imageUrl    String
+  coverImage  String
+  images      PlaceImage[]
   likes       Like[]
   ratings     Rating[]
   comments    Comment[]
   createdAt   DateTime  @default(now())
+}
+
+model PlaceImage {
+  id        Int      @id @default(autoincrement())
+  url       String
+  place     Place    @relation(fields: [placeId], references: [id])
+  placeId   Int
+  createdAt DateTime @default(now())
 }
 
 model Comment {
@@ -36,6 +48,7 @@ model User {
   email     String     @unique
   password  String
   name      String?
+  role      Role      @default(USER)
   isActive  Boolean
   likes     Like[]
   ratings   Rating[]
