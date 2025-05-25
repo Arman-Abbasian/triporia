@@ -1,3 +1,4 @@
+import {heroui} from '@heroui/theme';
 /** @type {import('tailwindcss').Config} */
 
 const withOpacity = (variable: string) => {
@@ -8,7 +9,11 @@ const withOpacity = (variable: string) => {
 }
 
 module.exports = {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/components/(button|input|ripple|spinner|form).js"
+  ],
   theme: {
     extend: {
       colors: {
@@ -25,5 +30,5 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [heroui()],
 }
