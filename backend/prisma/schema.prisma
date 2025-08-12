@@ -11,6 +11,11 @@ enum Role {
   USER
   ADMIN
 }
+enum Status {
+  accepted
+  rejected
+  pending
+}
 model Place {
   id          Int       @id @default(autoincrement())
   name        String
@@ -36,6 +41,7 @@ model PlaceImage {
 model Comment {
   id        Int      @id @default(autoincrement())
   content   String
+  status    Status   @default(pending)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id],onDelete: Cascade)
   userId    Int
