@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import {
   acceptCommentController,
   getAllCommentsController,
@@ -8,9 +8,9 @@ import {
 
 const router = Router()
 
-router.put('/comment/:id', acceptCommentController)
-router.delete('/comment/:id', removeCommentController)
-router.get('/comment/:postId', getPlaceCommentsController)
+router.put('/comment/:id', acceptCommentController as RequestHandler)
+router.delete('/comment/:id', removeCommentController as RequestHandler)
+router.get('/comment/:placeId', getPlaceCommentsController as RequestHandler)
 router.get('/comment', getAllCommentsController)
 
 export default router
