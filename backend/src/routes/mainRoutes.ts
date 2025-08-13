@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import {
   countriesController,
   placeController,
@@ -7,8 +7,8 @@ import {
 
 const router = Router()
 
-router.get('/places', placesController)
-router.get('/place/:id', placeController)
-router.get('/countires', countriesController)
+router.get('/places', placesController as RequestHandler)
+router.get('/place/:id', placeController as RequestHandler)
+router.get('/countires', countriesController as RequestHandler)
 
 export default router

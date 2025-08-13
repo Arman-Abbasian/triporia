@@ -41,8 +41,12 @@ export const AddCommentController = async (
     const userId = req.user.id
     const { placeId, content } = req.body
 
-    if (!content || !placeId) {
-      sendError(res, 'Place ID and comment content are required')
+    if (!content) {
+      sendError(res, 'Place not found')
+      return
+    }
+    if (!placeId) {
+      sendError(res, 'comment content are required')
       return
     }
 

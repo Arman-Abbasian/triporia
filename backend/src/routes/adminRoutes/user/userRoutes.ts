@@ -1,6 +1,5 @@
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import {
-  addUserController,
   editUserController,
   getAllUsersController,
   getUserController,
@@ -8,10 +7,9 @@ import {
 } from '../../../controllers/adminControllers/userControllers'
 const router = Router()
 
-router.post('/user', addUserController)
-router.put('/user/:id', editUserController)
-router.delete('/user/:id', removeUserController)
-router.get('/users', getAllUsersController)
-router.get('/users/:id', getUserController)
+router.put('/user/:id', editUserController as RequestHandler)
+router.delete('/user/:id', removeUserController as RequestHandler)
+router.get('/users', getAllUsersController as RequestHandler)
+router.get('/users/:id', getUserController as RequestHandler)
 
 export default router

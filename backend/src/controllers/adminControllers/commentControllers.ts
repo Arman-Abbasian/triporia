@@ -1,7 +1,6 @@
-import { Request, RequestHandler, Response } from 'express'
+import { Request, Response } from 'express'
 import { sendError, sendSuccess } from '../../utils/sendResponses'
 import { prisma } from '../../../prisma/client'
-import { RequestListener } from 'http'
 
 // Accept comment
 export const acceptCommentController = async (req: Request, res: Response) => {
@@ -65,7 +64,8 @@ export const removeCommentController = async (req: Request, res: Response) => {
     return
   }
 }
-// Login controller
+
+// get comment for one place controller
 export const getPlaceCommentsController = async (
   req: Request,
   res: Response
@@ -100,6 +100,7 @@ export const getPlaceCommentsController = async (
   }
 }
 
+//get All comments
 export const getAllCommentsController = async (req: Request, res: Response) => {
   try {
     const comments = await prisma.comment.findMany({
