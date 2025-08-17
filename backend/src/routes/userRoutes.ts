@@ -1,7 +1,8 @@
 import { Router, RequestHandler } from 'express'
 import {
   AddCommentController,
-  AddlikeController,
+  LikeController,
+  BookmarkController,
   AddRateController,
   editUserController,
   userController,
@@ -9,7 +10,8 @@ import {
 
 const router = Router()
 
-router.post('/like', AddlikeController as RequestHandler)
+router.post('/like', LikeController as RequestHandler)
+router.post('/bookmark', BookmarkController as RequestHandler)
 router.post('/comment', AddCommentController as RequestHandler)
 router.post('/rate', AddRateController as RequestHandler)
 router.get('/user', userController as RequestHandler)

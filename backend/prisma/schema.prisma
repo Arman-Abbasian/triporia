@@ -25,6 +25,7 @@ model Place {
   coverImage  String
   images      PlaceImage[]
   likes       Like[]
+  bookmarks   Bookmark[]
   ratings     Rating[]
   comments    Comment[]
   createdAt   DateTime  @default(now())
@@ -59,6 +60,7 @@ model User {
   likes     Like[]
   ratings   Rating[]
   comments  Comment[]
+  bookmarks Bookmark[]
   activationToken  String?  @unique
   tokenExpiresAt   DateTime? 
   refreshToken String? // Nullable
@@ -66,6 +68,16 @@ model User {
 }
 
 model Like {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId   Int
+  place    Place  @relation(fields: [placeId], references: [id],onDelete: Cascade)
+  placeId  Int
+
+  @@unique([userId, placeId])
+}
+
+model Bookmark {
   id       Int    @id @default(autoincrement())
   user     User   @relation(fields: [userId], references: [id],onDelete: Cascade)
   userId   Int

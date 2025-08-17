@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { prisma } from '../../prisma/client'
 import { sendError, sendSuccess } from '../utils/sendResponses'
 
-export const AddlikeController = async (
+export const LikeController = async (
   req: Request & { user: any },
   res: Response
 ) => {
@@ -29,6 +29,37 @@ export const AddlikeController = async (
     }
   } catch (err) {
     sendError(res, 'Failed to toggle like', err)
+    return
+  }
+}
+
+export const BookmarkController = async (
+  req: Request & { user: any },
+  res: Response
+) => {
+  try {
+    const userId = req.user.id
+    const { placeId } = req.body
+
+    const existingLike = await prisma.bookmark.findUnique({
+      where: { userId_placeId: { userId, placeId } },
+    })
+
+    if (existingLike) {
+      await prisma.bookmark.delete({
+        where: { userId_placeId: { userId, placeId } },
+      })
+      sendSuccess(res, 'bookmark removed')
+      return
+    } else {
+      await prisma.bookmark.create({
+        data: { userId, placeId },
+      })
+      sendSuccess(res, 'Place bookmarked')
+      return
+    }
+  } catch (err) {
+    sendError(res, 'Failed to toggle bookmark', err)
     return
   }
 }
