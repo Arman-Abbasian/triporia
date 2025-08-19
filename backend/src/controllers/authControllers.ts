@@ -13,13 +13,17 @@ export const signupController = async (req: Request, res: Response) => {
 
     const existingUser = await prisma.user.findUnique({ where: { email } })
     if (existingUser) {
+      //برای ثبت نام تکراری معمولا 409 برمی گردونن
       sendError(res, 'User with this email already exists', {}, 409)
       return
     }
-
+    //اون پارامتر دوم بهش می گن salt rounds یا cost factor. که نشون دهنده درجه امنیت است
+    //هر چه بالاتر امنتیت بیشتر ولی زمان بیشتر برای انجام هش
+    //10 عدد مناسبی است
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const token = crypto.randomBytes(32).toString('hex')
+    //برای ریست پسسورد یا لینک فعالسازی معمولا یاز این کریپتو استفاده می کنند
+    const activationToken = crypto.randomBytes(32).toString('hex')
     const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 12 * 1000) // 1 روز بعد
 
     const user = await prisma.user.create({
@@ -28,16 +32,10 @@ export const signupController = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         isActive: false,
-        activationToken: token,
+        activationToken,
         tokenExpiresAt,
       },
     })
-
-    const activationToken = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_EMAIL_SECRET as string,
-      { expiresIn: '1h' }
-    )
 
     const activationLink = `${process.env.BACKEND_URL}/auth/activate/${activationToken}`
 
@@ -66,10 +64,11 @@ export const loginController = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } })
 
-    if (!user) return sendError(res, 'Invalid credentials')
+    if (!user) return sendError(res, 'Email or Password is not true', {}, 404)
 
     const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch) return sendError(res, 'Invalid credentials')
+    if (!isMatch)
+      return sendError(res, 'Email or Password is not true', {}, 404)
 
     const accessToken = jwt.sign(
       { userId: user.id },
