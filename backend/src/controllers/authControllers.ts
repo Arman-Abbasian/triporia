@@ -59,9 +59,16 @@ export const signupController = async (req: Request, res: Response) => {
 
 // login controller
 export const loginController = async (req: Request, res: Response) => {
-  const { email, password } = req.body
-
   try {
+    const { email, password } = req.body
+
+    // گرفتن IP
+    let ipAddress = req.ip || 'unknown'
+
+    // اگر چندتا IP هست (مثلاً پشت چند پروکسی باشه)، فقط اولینش رو بگیر
+    if (ipAddress.includes(',')) {
+      ipAddress = ipAddress.split(',')[0].trim()
+    }
     const user = await prisma.user.findUnique({ where: { email } })
 
     if (!user) return sendError(res, 'Email or Password is not true', {}, 404)
@@ -82,9 +89,14 @@ export const loginController = async (req: Request, res: Response) => {
       { expiresIn: '7d' }
     )
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken },
+    await prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        token: refreshToken,
+        device: req.headers['user-agent'], // مثال: مرورگر و سیستم عامل
+        ipAddress: ipAddress, // آی‌پی کاربر
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 روز بعد
+      },
     })
 
     sendSuccess(res, 'Login successful', {
@@ -92,7 +104,7 @@ export const loginController = async (req: Request, res: Response) => {
       refreshToken,
     })
   } catch (error) {
-    sendError(res, 'Login failed', error)
+    sendError(res, 'Login failed', error, 500)
   }
 }
 
@@ -105,16 +117,18 @@ export const logoutController = async (req: Request, res: Response) => {
       sendError(res, 'No refresh token found', {}, 400)
       return
     }
-    const user = await prisma.user.findFirst({
-      where: { refreshToken },
+    const findrefreshToken = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    })
+    if (!findrefreshToken) {
+      sendError(res, 'No refresh token found', {}, 400)
+      return
+    }
+
+    await prisma.refreshToken.delete({
+      where: { token: refreshToken },
     })
 
-    if (user) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken: null },
-      })
-    }
     res.clearCookie('accessToken')
     res.clearCookie('refreshToken')
 
@@ -131,31 +145,36 @@ export const activateAccountController = async (
   req: Request,
   res: Response
 ) => {
-  const { token } = req.params
+  try {
+    const { token } = req.params
 
-  const user = await prisma.user.findFirst({
-    where: {
-      activationToken: token,
-      tokenExpiresAt: {
-        gte: new Date(), // بررسی انقضا
+    const user = await prisma.user.findUnique({
+      where: {
+        activationToken: token,
+        tokenExpiresAt: {
+          gte: new Date(), // بررسی انقضا
+        },
       },
-    },
-  })
+    })
 
-  if (!user) {
-    return sendError(res, 'Token is invalid or has expired', 400)
+    if (!user) {
+      return sendError(res, 'Token is invalid or has expired', 400)
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true,
+        activationToken: null,
+        tokenExpiresAt: null,
+      },
+    })
+
+    sendSuccess(res, 'Account activated successfully')
+  } catch (error) {
+    sendError(res, 'Activate Account failed', error, 500)
+    return
   }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      isActive: true,
-      activationToken: null,
-      tokenExpiresAt: null,
-    },
-  })
-
-  sendSuccess(res, 'Account activated successfully')
 }
 
 //resend activate link
@@ -163,27 +182,40 @@ export const resendActivateLinkController = async (
   req: Request,
   res: Response
 ) => {
-  const { email } = req.body
+  try {
+    const { email, password } = req.body
 
-  const user = await prisma.user.findUnique({ where: { email } })
+    const user = await prisma.user.findUnique({ where: { email } })
 
-  if (!user || user.isActive) {
-    return sendError(res, 'User not found or already active', 400)
+    if (!user) return sendError(res, 'Email or Password is not true', {}, 404)
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch)
+      return sendError(res, 'Email or Password is not true', {}, 404)
+
+    if (user.isActive) {
+      return sendError(res, 'User is already active', 400)
+    }
+
+    const token = crypto.randomBytes(32).toString('hex')
+    const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
+
+    if (user.tokenExpiresAt && user.tokenExpiresAt > tokenExpiresAt) {
+      return sendError(res, 'privious Link is valid', 400)
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        activationToken: token,
+        tokenExpiresAt,
+      },
+    })
+
+    const activationLink = `${process.env.CLIENT_URL}/auth/activate/${token}`
+    await sendActivationEmail(email, activationLink)
+
+    sendSuccess(res, 'Activation email resent')
+  } catch (error) {
+    sendError(res, 'resendActivateLinkError', error)
   }
-
-  const token = crypto.randomBytes(32).toString('hex')
-  const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      activationToken: token,
-      tokenExpiresAt,
-    },
-  })
-
-  const activationLink = `${process.env.CLIENT_URL}/auth/activate/${token}`
-  await sendActivationEmail(email, activationLink)
-
-  sendSuccess(res, 'Activation email resent')
 }

@@ -15,6 +15,7 @@ import { jwtAuth } from './middlewares/jwtAuth'
 dotenv.config()
 
 const app = express()
+app.set('trust proxy', true)
 const port = process.env.PORT || 5000
 
 app.use(cors())

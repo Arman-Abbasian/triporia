@@ -30,6 +30,7 @@ export const jwtAuth: RequestHandler = async (
     try {
       const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET!)
       req.user = decoded
+      //بعد از next()، ادامه کد داخل این middleware اجرا نمی‌شه
       next()
       return
     } catch (err: any) {
@@ -50,16 +51,33 @@ export const jwtAuth: RequestHandler = async (
       process.env.JWT_REFRESH_SECRET!
     ) as any
 
-    const userInDb = await prisma.user.findUnique({
-      where: { id: decodedRefresh.userId },
+    const userInDb = await prisma.refreshToken.findUnique({
+      where: { userId: decodedRefresh.userId, token: refreshToken },
     })
 
-    if (!userInDb || userInDb.refreshToken !== refreshToken) {
+    if (!userInDb) {
       sendError(res, 'Invalid refresh token', {}, 401)
       return
     }
 
-    // ✅ ساخت توکن‌های جدید
+    const newRefreshToken = jwt.sign(
+      { userId: userInDb.userId },
+      process.env.JWT_REFRESH_SECRET!,
+      { expiresIn: '7d' }
+    )
+
+    await prisma.refreshToken.update({
+      where: { id: userInDb.id },
+      data: { token: newRefreshToken },
+    })
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
     const newAccessToken = jwt.sign(
       { userId: userInDb.id },
       process.env.JWT_ACCESS_SECRET!,

@@ -63,8 +63,8 @@ model User {
   bookmarks Bookmark[]
   activationToken  String?  @unique
   tokenExpiresAt   DateTime? 
-  refreshToken String? // Nullable
   createdAt   DateTime  @default(now())
+  RefreshToken RefreshToken[]
 }
 
 model Like {
@@ -96,4 +96,15 @@ model Rating {
   score    Int
 
   @@unique([userId, placeId])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  device    String?  // مثلا "Chrome on Windows" یا "iPhone"
+  ipAddress String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
