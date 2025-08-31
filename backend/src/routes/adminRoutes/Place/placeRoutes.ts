@@ -9,31 +9,31 @@ import {
 import { uploadPlaceImage } from '../../../middlewares/multer/uploadPlaceImage'
 import { handleMulterErrors } from '../../../middlewares/handleMulterErrors'
 import { uploadPlaceImages } from '../../../middlewares/multer/uploadPlaceImages'
+
 const router = Router()
 
 router.post(
-  '/place',
+  '/addPlace',
   uploadPlaceImage.single('coverImage'),
   handleMulterErrors,
   addPlaceController
 )
 
 router.post(
-  '/place/:id',
+  '/placeImages/:id',
   uploadPlaceImages.array('images', 5),
   handleMulterErrors,
   addPlaceImagesController
 )
 
 router.patch(
-  '/place/:placeId',
+  '/:placeId',
   uploadPlaceImage.single('coverImage'),
   handleMulterErrors,
   editPlaceController
 )
+router.delete('/:placeId/images/:imageId', deletePlaceImageController)
 
-router.delete('/place/:placeId', removePlaceController)
-
-router.delete('/place/:placeId/images/:imageId', deletePlaceImageController)
+router.delete('/:placeId', removePlaceController)
 
 export default router

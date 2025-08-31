@@ -2,15 +2,16 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import path from 'path'
 //Routes
 import authRoutes from './routes/authRoutes'
 import mainRoutes from './routes/mainRoutes'
 import adminRoutes from './routes/adminRoutes'
 import userRoutes from './routes/userRoutes'
-import path from 'path'
+
 import { prisma } from '../prisma/client'
 import { isAdmin } from './middlewares/isAdmin'
-import { jwtAuth } from './middlewares/jwtAuth'
+import { checkUser } from './middlewares/jwtAuth'
 
 dotenv.config()
 
@@ -23,9 +24,9 @@ app.use(express.json())
 app.use('/static', express.static(path.join(__dirname, '..', 'public')))
 
 app.use('/api/', mainRoutes)
-app.use('/api/auth', jwtAuth, authRoutes)
-app.use('/api/admin', jwtAuth, isAdmin, adminRoutes)
-app.use('/api/user', jwtAuth, userRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/admin', checkUser, isAdmin, adminRoutes)
+app.use('/api/user', checkUser, userRoutes)
 
 async function startServer() {
   try {

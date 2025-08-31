@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-export const jwtAuth: RequestHandler = async (
+export const checkUser: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -96,5 +96,49 @@ export const jwtAuth: RequestHandler = async (
     next()
   } catch (err) {
     sendError(res, 'Authentication failed', err, 500)
+  }
+}
+
+export const checkGuest: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const accessToken = req.cookies.accessToken
+    const refreshToken = req.cookies.refreshToken
+
+    if (accessToken) {
+      const decodedAccess = jwt.verify(
+        accessToken,
+        process.env.JWT_ACCESS_SECRET!
+      )
+      const userInDb = await prisma.user.findUnique({
+        where: { id: Number(decodedAccess) },
+      })
+      if (userInDb) {
+        sendError(res, 'user logged in', {}, 400)
+        return
+      }
+    }
+    if (refreshToken) {
+      const decodedRefresh = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET!
+      )
+
+      const userInDb = await prisma.refreshToken.findUnique({
+        where: { userId: Number(decodedRefresh), token: refreshToken },
+      })
+
+      if (userInDb) {
+        sendError(res, 'user logged in', {}, 400)
+        return
+      }
+    }
+
+    next()
+  } catch (err) {
+    sendError(res, 'Internal server Error', err, 500)
   }
 }
