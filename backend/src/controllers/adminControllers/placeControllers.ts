@@ -2,6 +2,27 @@ import { Request, Response } from 'express'
 import { sendError, sendSuccess } from '../../utils/sendResponses'
 import { prisma } from '../../../prisma/client'
 
+// Get  place images
+export const getPlaceImagesController = async (req: Request, res: Response) => {
+  try {
+    const placeId = Number(req.params.placeId)
+
+    const existingPlace = await prisma.place.findUnique({
+      where: { id: placeId },
+    })
+    if (!existingPlace) {
+      sendError(res, 'Place not found', 404)
+      return
+    }
+    const images = prisma.placeImage.findMany({
+      where: { id: placeId },
+    })
+    sendSuccess(res, 'Images fetched successfully', images, 200)
+  } catch (err) {
+    sendError(res, 'Failed to fetch images', err)
+  }
+}
+
 // Add new place with a cover image
 export const addPlaceController = async (
   req: Request & { file?: any },
@@ -40,7 +61,7 @@ export const addPlaceImagesController = async (req: Request, res: Response) => {
     const files = req.files as Express.Multer.File[]
 
     if (!files || files.length === 0) {
-      sendError(res, 'No images uploaded')
+      sendError(res, 'No images uploaded', 400)
       return
     }
 
@@ -110,8 +131,8 @@ export const editPlaceController = async (
   }
 }
 
-// remove a place image
-export const deletePlaceImageController = async (
+// Remove a place image
+export const removePlaceImageController = async (
   req: Request,
   res: Response
 ) => {
