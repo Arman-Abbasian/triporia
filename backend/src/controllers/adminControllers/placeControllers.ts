@@ -1,12 +1,18 @@
 import { Request, Response } from 'express'
 import { sendError, sendSuccess } from '../../utils/sendResponses'
 import { prisma } from '../../../prisma/client'
+import fs from 'fs'
 
 // Get  place images
 export const getPlaceImagesController = async (req: Request, res: Response) => {
   try {
     const placeId = Number(req.params.placeId)
-
+    if (!placeId) {
+      {
+        sendError(res, 'there is no placeId', 400)
+        return
+      }
+    }
     const existingPlace = await prisma.place.findUnique({
       where: { id: placeId },
     })
@@ -18,8 +24,10 @@ export const getPlaceImagesController = async (req: Request, res: Response) => {
       where: { id: placeId },
     })
     sendSuccess(res, 'Images fetched successfully', images, 200)
+    return
   } catch (err) {
     sendError(res, 'Failed to fetch images', err)
+    return
   }
 }
 
@@ -56,21 +64,27 @@ export const addPlaceController = async (
 
 // Add additional images for a place
 export const addPlaceImagesController = async (req: Request, res: Response) => {
+  const placeId = Number(req.params.placeId)
+  const files = req.files as Express.Multer.File[]
+
+  if (!files || files.length === 0) {
+    sendError(res, 'No images uploaded', 400)
+    return
+  }
+
+  const place = await prisma.place.findUnique({ where: { id: placeId } })
+  if (!place) {
+    // پاک کردن فایل‌های آپلود شده قبل از خطا
+    for (const file of files) {
+      fs.unlink(`/public/uploads/images/places/${file.filename}`, (err) => {
+        if (err) console.error('Failed to delete file:', file.filename)
+      })
+    }
+    sendError(res, 'Place not found', {}, 404)
+    return
+  }
+
   try {
-    const placeId = Number(req.params.placeId)
-    const files = req.files as Express.Multer.File[]
-
-    if (!files || files.length === 0) {
-      sendError(res, 'No images uploaded', 400)
-      return
-    }
-
-    const place = await prisma.place.findUnique({ where: { id: placeId } })
-    if (!place) {
-      sendError(res, 'Place not found', {}, 404)
-      return
-    }
-
     const createdImages = await Promise.all(
       files.map((file) =>
         prisma.placeImage.create({
@@ -85,6 +99,12 @@ export const addPlaceImagesController = async (req: Request, res: Response) => {
     sendSuccess(res, 'Images uploaded successfully', createdImages, 201)
     return
   } catch (err) {
+    // در صورت خطا هنگام ایجاد رکورد، فایل‌ها رو پاک کن
+    for (const file of files) {
+      fs.unlink(`/public/uploads/images/places/${file.filename}`, (err) => {
+        if (err) console.error('Failed to delete file:', file.filename)
+      })
+    }
     sendError(res, 'Failed to upload images', err)
     return
   }
@@ -173,7 +193,7 @@ export const removePlaceController = async (req: Request, res: Response) => {
   try {
     const placeId = Number(req.params.placeId)
     await prisma.place.delete({ where: { id: placeId } })
-    //  delete related images/comments/likes/...(white it is onDelete: Cascade in schema)
+    //  delete related images/comments/likes/...(while it is onDelete: Cascade in schema)
     sendSuccess(res, 'Place removed successfully')
     return
   } catch (err) {

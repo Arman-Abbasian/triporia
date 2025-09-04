@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import {
   addPlaceController,
   addPlaceImagesController,
@@ -9,20 +9,26 @@ import {
 } from '../../../controllers/adminControllers/placeControllers'
 import { uploadPlaceImage } from '../../../middlewares/multer/uploadPlaceImage'
 import { handleMulterErrors } from '../../../middlewares/handleMulterErrors'
-import { uploadPlaceImages } from '../../../middlewares/multer/uploadPlaceImages'
+import { addPlaceValidator } from '../../../middlewares/validations/placeValidator'
+import { validate } from '../../../middlewares/validations/validate'
 
 const router = Router()
 
 router.get('/:placeId/images', getPlaceImagesController)
+
 router.post(
   '/addPlace',
+  addPlaceValidator as unknown as RequestHandler,
+  validate as RequestHandler,
   uploadPlaceImage.single('coverImage'),
   handleMulterErrors,
   addPlaceController
 )
 
-router.patch(
+router.put(
   '/:placeId',
+  addPlaceValidator as unknown as RequestHandler,
+  validate as RequestHandler,
   uploadPlaceImage.single('coverImage'),
   handleMulterErrors,
   editPlaceController
@@ -32,7 +38,7 @@ router.delete('/:placeId', removePlaceController)
 
 router.post(
   '/placeImages/:id',
-  uploadPlaceImages.array('images', 5),
+  uploadPlaceImage.array('images', 5),
   handleMulterErrors,
   addPlaceImagesController
 )
