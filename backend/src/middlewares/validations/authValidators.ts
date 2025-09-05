@@ -47,3 +47,19 @@ export const loginValidator = [
     .isLength({ max: 30 })
     .withMessage('Password must be maximum 30 characters'),
 ]
+
+export const resendActivateLinkValidator = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Email must be valid'),
+
+  body('password')
+    .trim()
+    .notEmpty()
+    .withMessage('password is required')
+    .isLength({ max: 30 })
+    .withMessage('Password must be maximum 30 characters'),
+]

@@ -8,6 +8,7 @@ import {
 } from '../controllers/authControllers'
 import {
   loginValidator,
+  resendActivateLinkValidator,
   signupValidator,
 } from '../middlewares/validations/authValidators'
 import { validate } from '../middlewares/validations/validate'
@@ -23,6 +24,8 @@ router.post(
 router.get('/activate/:token', activateAccountController as RequestHandler)
 router.post(
   '/activate/resend-activation',
+  resendActivateLinkValidator as unknown as RequestHandler,
+  validate as RequestHandler,
   resendActivateLinkController as RequestHandler
 )
 router.post(

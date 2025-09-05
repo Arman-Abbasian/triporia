@@ -22,7 +22,7 @@ export const signupController = async (req: Request, res: Response) => {
     //10 عدد مناسبی است
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    //برای ریست پسسورد یا لینک فعالسازی معمولا یاز این کریپتو استفاده می کنند
+    //برای ریست پسسورد یا لینک فعالسازی معمولا از این کریپتو استفاده می کنند
     const activationToken = crypto.randomBytes(32).toString('hex')
     const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 12 * 1000) // 1 روز بعد
 
@@ -99,10 +99,23 @@ export const loginController = async (req: Request, res: Response) => {
       },
     })
 
-    sendSuccess(res, 'Login successful', {
-      accessToken,
-      refreshToken,
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true, // از دسترس جاوااسکریپت خارجه
+      secure: process.env.NODE_ENV === 'production', // فقط روی HTTPS
+      sameSite: 'lax', // CSRF protection نسبی
+      maxAge: 24 * 60 * 60 * 1000, // 1 روز
     })
+
+    // تنظیم Refresh Token در کوکی
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 روز
+    })
+
+    // موفقیت
+    sendSuccess(res, 'Login successful')
   } catch (error) {
     sendError(res, 'Login failed', error, 500)
   }
@@ -147,7 +160,10 @@ export const activateAccountController = async (
 ) => {
   try {
     const { token } = req.params
-
+    if (!token) {
+      sendError(res, 'there is no token', 400)
+      return
+    }
     const user = await prisma.user.findUnique({
       where: {
         activationToken: token,
@@ -169,7 +185,6 @@ export const activateAccountController = async (
         tokenExpiresAt: null,
       },
     })
-
     sendSuccess(res, 'Account activated successfully')
   } catch (error) {
     sendError(res, 'Activate Account failed', error, 500)
@@ -196,13 +211,12 @@ export const resendActivateLinkController = async (
     if (user.isActive) {
       return sendError(res, 'User is already active', 400)
     }
-
-    const token = crypto.randomBytes(32).toString('hex')
-    const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
-
-    if (user.tokenExpiresAt && user.tokenExpiresAt > tokenExpiresAt) {
+    if (user.tokenExpiresAt && user.tokenExpiresAt > new Date(Date.now())) {
       return sendError(res, 'privious Link is valid', 400)
     }
+    const token = crypto.randomBytes(32).toString('hex')
+    const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 12 * 1000)
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
