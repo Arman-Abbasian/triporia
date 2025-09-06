@@ -78,13 +78,13 @@ export const loginController = async (req: Request, res: Response) => {
       return sendError(res, 'Email or Password is not true', {}, 404)
 
     const accessToken = jwt.sign(
-      { userId: user.id },
+      { userId: user.id, role: user.role },
       process.env.JWT_ACCESS_SECRET!,
       { expiresIn: '1d' }
     )
 
     const refreshToken = jwt.sign(
-      { userId: user.id },
+      { userId: user.id, role: user.role },
       process.env.JWT_REFRESH_SECRET!,
       { expiresIn: '7d' }
     )

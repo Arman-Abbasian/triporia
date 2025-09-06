@@ -20,16 +20,18 @@ export const checkUser: RequestHandler = async (
   try {
     const accessToken = req.cookies.accessToken
     const refreshToken = req.cookies.refreshToken
-
+    // Authentication level check
     if (!accessToken && !refreshToken) {
       sendError(res, 'Authentication required', {}, 401)
       return
     }
-
-    // ✅ بررسی accessToken
+    // بررسی accessToken
     try {
-      const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET!)
-      req.user = decoded
+      const accessTokenDecoded = jwt.verify(
+        accessToken,
+        process.env.JWT_ACCESS_SECRET!
+      )
+      req.user = accessTokenDecoded
       //بعد از next()، ادامه کد داخل این middleware اجرا نمی‌شه
       next()
       return
@@ -42,7 +44,7 @@ export const checkUser: RequestHandler = async (
 
     // ✅ بررسی refreshToken
     if (!refreshToken) {
-      sendError(res, 'Access token expired. Please login again.', {}, 401)
+      sendError(res, 'Refresh token expired. Please login again.', {}, 401)
       return
     }
 
