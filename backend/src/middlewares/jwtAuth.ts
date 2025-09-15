@@ -53,23 +53,23 @@ export const checkUser: RequestHandler = async (
       process.env.JWT_REFRESH_SECRET!
     ) as any
 
-    const userInDb = await prisma.refreshToken.findUnique({
+    const userInRefreshTokenDb = await prisma.refreshToken.findUnique({
       where: { userId: decodedRefresh.userId, token: refreshToken },
     })
 
-    if (!userInDb) {
+    if (!userInRefreshTokenDb) {
       sendError(res, 'Invalid refresh token', {}, 401)
       return
     }
 
     const newRefreshToken = jwt.sign(
-      { userId: userInDb.userId },
+      { userId: userInRefreshTokenDb.userId },
       process.env.JWT_REFRESH_SECRET!,
       { expiresIn: '7d' }
     )
 
     await prisma.refreshToken.update({
-      where: { id: userInDb.id },
+      where: { id: userInRefreshTokenDb.id },
       data: { token: newRefreshToken },
     })
 
@@ -81,7 +81,7 @@ export const checkUser: RequestHandler = async (
     })
 
     const newAccessToken = jwt.sign(
-      { userId: userInDb.id },
+      { userId: userInRefreshTokenDb.id },
       process.env.JWT_ACCESS_SECRET!,
       { expiresIn: '15m' }
     )
@@ -94,7 +94,7 @@ export const checkUser: RequestHandler = async (
       maxAge: 15 * 60 * 1000,
     })
 
-    req.user = { userId: userInDb.id }
+    req.user = { userId: userInRefreshTokenDb.id }
     next()
   } catch (err) {
     sendError(res, 'Authentication failed', err, 500)

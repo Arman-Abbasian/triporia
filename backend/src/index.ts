@@ -12,6 +12,8 @@ import userRoutes from './routes/userRoutes'
 import { prisma } from '../prisma/client'
 import { isAdmin } from './middlewares/isAdmin'
 import { checkUser } from './middlewares/jwtAuth'
+import { swaggerSpec } from './configs/swaggerConfig'
+import swaggerUi from 'swagger-ui-express'
 
 dotenv.config()
 
@@ -27,6 +29,8 @@ app.use('/api/', mainRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', checkUser, isAdmin, adminRoutes)
 app.use('/api/user', checkUser, userRoutes)
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 async function startServer() {
   try {
