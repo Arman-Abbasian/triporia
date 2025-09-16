@@ -19,7 +19,7 @@ const swaggerOptions: swaggerJSDoc.Options = {
           type: 'object',
           properties: {
             isSuccess: { type: 'boolean', example: true },
-            message: { type: 'string', example: 'Operation successful' },
+            message: { type: 'string', example: 'successful message' },
             data: {
               type: 'object',
               additionalProperties: true,
@@ -32,12 +32,12 @@ const swaggerOptions: swaggerJSDoc.Options = {
           type: 'object',
           properties: {
             isSuccess: { type: 'boolean', example: false },
-            message: { type: 'string', example: 'Validation failed' },
+            message: { type: 'string', example: 'Error message' },
             data: { type: 'null', example: null },
             error: {
               type: 'object',
               additionalProperties: true,
-              example: { field: 'username', issue: 'Required field' },
+              example: { field1: 'error1', field2: 'error2' },
             },
           },
         },

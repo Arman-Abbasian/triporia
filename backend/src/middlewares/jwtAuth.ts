@@ -107,8 +107,8 @@ export const checkGuest: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const accessToken = req.cookies.accessToken
-    const refreshToken = req.cookies.refreshToken
+    const accessToken = req?.cookies?.accessToken
+    const refreshToken = req?.cookies?.refreshToken
 
     if (accessToken) {
       const decodedAccess = jwt.verify(
@@ -142,5 +142,6 @@ export const checkGuest: RequestHandler = async (
     next()
   } catch (err) {
     sendError(res, 'Internal server Error', err, 500)
+    console.log(err)
   }
 }

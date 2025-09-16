@@ -34,6 +34,8 @@ export const signupValidator = [
 
 export const loginValidator = [
   body('email')
+    .exists()
+    .withMessage('Email field is required')
     .trim()
     .notEmpty()
     .withMessage('Email is required')
@@ -41,6 +43,8 @@ export const loginValidator = [
     .withMessage('Email must be valid'),
 
   body('password')
+    .exists()
+    .withMessage('password field is required')
     .trim()
     .notEmpty()
     .withMessage('password is required')
