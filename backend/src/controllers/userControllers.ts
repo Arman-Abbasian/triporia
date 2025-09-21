@@ -189,3 +189,35 @@ export const editUserController = async (
     return
   }
 }
+
+// logout controller
+export const logoutController = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken
+
+    if (!refreshToken) {
+      sendError(res, 'No refresh token found', {}, 400)
+      return
+    }
+    const findrefreshToken = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    })
+    if (!findrefreshToken) {
+      sendError(res, 'No refresh token found', {}, 400)
+      return
+    }
+
+    await prisma.refreshToken.delete({
+      where: { token: refreshToken },
+    })
+
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+
+    sendSuccess(res, 'Logged out successfully')
+    return
+  } catch (err) {
+    sendError(res, 'Logout failed', err, 500)
+    return
+  }
+}

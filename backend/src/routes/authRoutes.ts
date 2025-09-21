@@ -2,7 +2,6 @@ import { Router, RequestHandler } from 'express'
 import {
   activateAccountController,
   loginController,
-  logoutController,
   resendActivateLinkController,
   signupController,
 } from '../controllers/authControllers'
@@ -147,7 +146,7 @@ router.post(
   validate as unknown as RequestHandler,
   loginController as RequestHandler
 )
-router.get('/logout', logoutController as RequestHandler)
+
 router.get('/activate/:token', activateAccountController as RequestHandler)
 router.post(
   '/activate/resend-activation',

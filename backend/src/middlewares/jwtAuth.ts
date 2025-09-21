@@ -109,16 +109,16 @@ export const checkGuest: RequestHandler = async (
   try {
     const accessToken = req?.cookies?.accessToken
     const refreshToken = req?.cookies?.refreshToken
-
+    let userInDb
     if (accessToken) {
       const decodedAccess = jwt.verify(
         accessToken,
         process.env.JWT_ACCESS_SECRET!
       )
-      const userInDb = await prisma.user.findUnique({
+      userInDb = await prisma.user.findUnique({
         where: { id: Number(decodedAccess) },
       })
-      if (userInDb) {
+      if (userInDb && userInDb?.isActive) {
         sendError(res, 'user logged in', {}, 400)
         return
       }
@@ -129,11 +129,11 @@ export const checkGuest: RequestHandler = async (
         process.env.JWT_REFRESH_SECRET!
       )
 
-      const userInDb = await prisma.refreshToken.findUnique({
+      const refreshTokenInDb = await prisma.refreshToken.findUnique({
         where: { userId: Number(decodedRefresh), token: refreshToken },
       })
 
-      if (userInDb) {
+      if (refreshTokenInDb && userInDb?.isActive) {
         sendError(res, 'user logged in', {}, 400)
         return
       }
