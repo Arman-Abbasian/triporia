@@ -1,13 +1,10 @@
 import { Router, RequestHandler } from 'express'
 import {
-  activateAccountController,
   loginController,
-  resendActivateLinkController,
   signupController,
 } from '../controllers/authControllers'
 import {
   loginValidator,
-  resendActivateLinkValidator,
   signupValidator,
 } from '../middlewares/validations/authValidators'
 import { validate } from '../middlewares/validations/validate'
@@ -145,14 +142,6 @@ router.post(
   loginValidator as unknown as RequestHandler,
   validate as unknown as RequestHandler,
   loginController as RequestHandler
-)
-
-router.get('/activate/:token', activateAccountController as RequestHandler)
-router.post(
-  '/activate/resend-activation',
-  resendActivateLinkValidator as unknown as RequestHandler,
-  validate as RequestHandler,
-  resendActivateLinkController as RequestHandler
 )
 
 export default router

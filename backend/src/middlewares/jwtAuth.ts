@@ -18,28 +18,27 @@ export const checkUser: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const accessToken = req.cookies.accessToken
-    const refreshToken = req.cookies.refreshToken
+    const accessToken = req?.cookies?.accessToken
+    const refreshToken = req?.cookies?.refreshToken
     // Authentication level check
     if (!accessToken && !refreshToken) {
       sendError(res, 'Authentication required', {}, 401)
       return
     }
     // بررسی accessToken
-    try {
-      const accessTokenDecoded = jwt.verify(
-        accessToken,
-        process.env.JWT_ACCESS_SECRET!
-      )
-      req.user = accessTokenDecoded
+
+    const decodedAccess = jwt.verify(
+      accessToken,
+      process.env.JWT_ACCESS_SECRET!
+    )
+    const userInDb = await prisma.user.findUnique({
+      where: { id: Number(decodedAccess) },
+    })
+    if (userInDb) {
+      req.user = decodedAccess
       //بعد از next()، ادامه کد داخل این middleware اجرا نمی‌شه
       next()
       return
-    } catch (err: any) {
-      if (err.name !== 'TokenExpiredError') {
-        sendError(res, 'Invalid access token', {}, 401)
-        return
-      }
     }
 
     // ✅ بررسی refreshToken
@@ -67,6 +66,11 @@ export const checkUser: RequestHandler = async (
       process.env.JWT_REFRESH_SECRET!,
       { expiresIn: '7d' }
     )
+    const newAccessToken = jwt.sign(
+      { userId: userInRefreshTokenDb.id },
+      process.env.JWT_ACCESS_SECRET!,
+      { expiresIn: '15m' }
+    )
 
     await prisma.refreshToken.update({
       where: { id: userInRefreshTokenDb.id },
@@ -79,12 +83,6 @@ export const checkUser: RequestHandler = async (
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-
-    const newAccessToken = jwt.sign(
-      { userId: userInRefreshTokenDb.id },
-      process.env.JWT_ACCESS_SECRET!,
-      { expiresIn: '15m' }
-    )
 
     // ✅ ذخیره توکن‌ها در cookie
     res.cookie('accessToken', newAccessToken, {
@@ -109,16 +107,16 @@ export const checkGuest: RequestHandler = async (
   try {
     const accessToken = req?.cookies?.accessToken
     const refreshToken = req?.cookies?.refreshToken
-    let userInDb
+
     if (accessToken) {
       const decodedAccess = jwt.verify(
         accessToken,
         process.env.JWT_ACCESS_SECRET!
       )
-      userInDb = await prisma.user.findUnique({
+      const userInDb = await prisma.user.findUnique({
         where: { id: Number(decodedAccess) },
       })
-      if (userInDb && userInDb?.isActive) {
+      if (userInDb) {
         sendError(res, 'user logged in', {}, 400)
         return
       }
@@ -133,7 +131,7 @@ export const checkGuest: RequestHandler = async (
         where: { userId: Number(decodedRefresh), token: refreshToken },
       })
 
-      if (refreshTokenInDb && userInDb?.isActive) {
+      if (refreshTokenInDb) {
         sendError(res, 'user logged in', {}, 400)
         return
       }

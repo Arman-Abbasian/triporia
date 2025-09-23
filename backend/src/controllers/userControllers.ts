@@ -1,6 +1,9 @@
 import { Request, Response } from 'express'
 import { prisma } from '../../prisma/client'
 import { sendError, sendSuccess } from '../utils/sendResponses'
+import { sendActivationEmail } from '../utils/sendActivationEmail'
+import crypto from 'crypto'
+import bcrypt from 'bcrypt'
 
 export const LikeController = async (
   req: Request & { user: any },
@@ -9,11 +12,14 @@ export const LikeController = async (
   try {
     const userId = req.user.id
     const { placeId } = req.body
+    if (!placeId) {
+      sendError(res, 'placeId is required', 400)
+      return
+    }
 
     const existingLike = await prisma.like.findUnique({
       where: { userId_placeId: { userId, placeId } },
     })
-
     if (existingLike) {
       await prisma.like.delete({
         where: { userId_placeId: { userId, placeId } },
@@ -40,6 +46,11 @@ export const BookmarkController = async (
   try {
     const userId = req.user.id
     const { placeId } = req.body
+
+    if (!placeId) {
+      sendError(res, 'placeId is required', 400)
+      return
+    }
 
     const existingLike = await prisma.bookmark.findUnique({
       where: { userId_placeId: { userId, placeId } },
@@ -72,11 +83,11 @@ export const AddCommentController = async (
     const userId = req.user.id
     const { placeId, content } = req.body
 
-    if (!content) {
+    if (!placeId) {
       sendError(res, 'Place not found')
       return
     }
-    if (!placeId) {
+    if (!content) {
       sendError(res, 'comment content are required')
       return
     }
@@ -219,5 +230,86 @@ export const logoutController = async (req: Request, res: Response) => {
   } catch (err) {
     sendError(res, 'Logout failed', err, 500)
     return
+  }
+}
+
+//user Activate controller
+export const activateAccountController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { token } = req.params
+    if (!token) {
+      sendError(res, 'there is no token', 400)
+      return
+    }
+    const user = await prisma.user.findUnique({
+      where: {
+        activationToken: token,
+        tokenExpiresAt: {
+          gte: new Date(), // بررسی انقضا
+        },
+      },
+    })
+
+    if (!user) {
+      return sendError(res, 'Token is invalid or has expired', 400)
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true,
+        activationToken: null,
+        tokenExpiresAt: null,
+      },
+    })
+    sendSuccess(res, 'Account activated successfully')
+  } catch (error) {
+    sendError(res, 'Activate Account failed', error, 500)
+    return
+  }
+}
+
+//resend activate link
+export const resendActivateLinkController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { email, password } = req.body
+
+    const user = await prisma.user.findUnique({ where: { email } })
+
+    if (!user) return sendError(res, 'Email or Password is not true', {}, 404)
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch)
+      return sendError(res, 'Email or Password is not true', {}, 404)
+
+    if (user.isActive) {
+      return sendError(res, 'User is already active', 400)
+    }
+    if (user.tokenExpiresAt && user.tokenExpiresAt > new Date(Date.now())) {
+      return sendError(res, 'privious Link is valid', 400)
+    }
+    const token = crypto.randomBytes(32).toString('hex')
+    const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 12 * 1000)
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        activationToken: token,
+        tokenExpiresAt,
+      },
+    })
+
+    const activationLink = `${process.env.CLIENT_URL}/auth/activate/${token}`
+    await sendActivationEmail(email, activationLink)
+
+    sendSuccess(res, 'Activation email resent')
+  } catch (error) {
+    sendError(res, 'resendActivateLinkError', error)
   }
 }
