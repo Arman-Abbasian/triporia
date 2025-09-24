@@ -34,7 +34,9 @@ export const signupValidator = [
 
 export const loginValidator = [
   body('email')
-    .exists()
+    .exists({ checkFalsy: true })
+    .withMessage('email field is required')
+    .bail()
     .withMessage('Email field is required')
     .trim()
     .notEmpty()
@@ -43,7 +45,9 @@ export const loginValidator = [
     .withMessage('Email must be valid'),
 
   body('password')
-    .exists()
+    .exists({ checkFalsy: true })
+    .withMessage('password field is required')
+    .bail()
     .withMessage('password field is required')
     .trim()
     .notEmpty()
@@ -54,6 +58,9 @@ export const loginValidator = [
 
 export const resendActivateLinkValidator = [
   body('email')
+    .exists({ checkFalsy: true })
+    .withMessage('email field is required')
+    .bail()
     .trim()
     .notEmpty()
     .withMessage('Email is required')
@@ -61,6 +68,9 @@ export const resendActivateLinkValidator = [
     .withMessage('Email must be valid'),
 
   body('password')
+    .exists({ checkFalsy: true })
+    .withMessage('password field is required')
+    .bail()
     .trim()
     .notEmpty()
     .withMessage('password is required')

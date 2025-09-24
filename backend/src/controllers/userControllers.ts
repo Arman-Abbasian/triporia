@@ -12,8 +12,11 @@ export const LikeController = async (
   try {
     const userId = req.user.id
     const { placeId } = req.body
-    if (!placeId) {
-      sendError(res, 'placeId is required', 400)
+    const place = await prisma.place.findUnique({
+      where: { id: placeId },
+    })
+    if (!place) {
+      sendError(res, 'place not found', 404)
       return
     }
 
@@ -47,8 +50,11 @@ export const BookmarkController = async (
     const userId = req.user.id
     const { placeId } = req.body
 
-    if (!placeId) {
-      sendError(res, 'placeId is required', 400)
+    const place = await prisma.place.findUnique({
+      where: { id: placeId },
+    })
+    if (!place) {
+      sendError(res, 'place not found', 404)
       return
     }
 
@@ -82,16 +88,13 @@ export const AddCommentController = async (
   try {
     const userId = req.user.id
     const { placeId, content } = req.body
-
-    if (!placeId) {
-      sendError(res, 'Place not found')
+    const place = await prisma.place.findUnique({
+      where: { id: placeId },
+    })
+    if (!place) {
+      sendError(res, 'place not found', 404)
       return
     }
-    if (!content) {
-      sendError(res, 'comment content are required')
-      return
-    }
-
     const newComment = await prisma.comment.create({
       data: {
         content,
@@ -119,8 +122,11 @@ export const AddRateController = async (
     const userId = req.user.id
     const { placeId, score } = req.body
 
-    if (!placeId || typeof score !== 'number' || score < 1 || score > 5) {
-      sendError(res, 'Invalid rating data')
+    const place = await prisma.place.findUnique({
+      where: { id: placeId },
+    })
+    if (!place) {
+      sendError(res, 'place not found', 404)
       return
     }
 
@@ -128,11 +134,11 @@ export const AddRateController = async (
       where: {
         userId_placeId: { userId, placeId },
       },
+      //upsert یعنی اگر بود اپدیت کن اگر نبود بساز
       update: { score },
       create: { userId, placeId, score },
     })
-
-    sendSuccess(res, 'Rating submitted', updatedRating)
+    sendSuccess(res, 'Rating submitted', updatedRating, 201)
     return
   } catch (err) {
     sendError(res, 'Failed to submit rating', err)
@@ -158,12 +164,6 @@ export const userController = async (
         createdAt: true,
       },
     })
-
-    if (!user) {
-      sendError(res, 'User not found')
-      return
-    }
-
     sendSuccess(res, 'User profile fetched', user)
     return
   } catch (err) {

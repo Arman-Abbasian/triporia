@@ -13,7 +13,10 @@ import {
 import { resendActivateLinkValidator } from '../middlewares/validations/authValidators'
 import { validate } from '../middlewares/validations/validate'
 import { idValidator } from '../middlewares/validations/globalValidators'
-import { commentValidator } from '../middlewares/validations/userValidators'
+import {
+  commentValidator,
+  rateValidator,
+} from '../middlewares/validations/userValidators'
 
 const router = Router()
 
@@ -45,6 +48,12 @@ const router = Router()
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: place not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
@@ -63,13 +72,13 @@ router.post(
  * /user/bookmark:
  *   post:
  *     summary: User bookmark/unbookmark a place
- *     description: User bookmark/unbookmark a place
+ *     description: User like/unlike a place
  *     tags: [User]
  *     schema:
  *           type: string
  *     responses:
  *       200:
- *         description: bookmark/unbookmark  successfully
+ *         description: like/unlike successfully
  *         content:
  *           application/json:
  *             schema:
@@ -82,6 +91,12 @@ router.post(
  *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Authentication required (no valid access/refresh token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: place not found
  *         content:
  *           application/json:
  *             schema:
@@ -99,6 +114,48 @@ router.post(
   validate as RequestHandler,
   BookmarkController as RequestHandler
 )
+
+/**
+ * @swagger
+ * /user/comment:
+ *   post:
+ *     summary: User bookmark/unbookmark a place
+ *     description: User bookmark/unbookmark a place
+ *     tags: [User]
+ *     schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Comment added
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Authentication required (no valid access/refresh token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: place not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
   '/comment',
   idValidator as unknown as RequestHandler,
@@ -106,7 +163,83 @@ router.post(
   validate as RequestHandler,
   AddCommentController as RequestHandler
 )
-router.post('/rate', AddRateController as RequestHandler)
+/**
+ * @swagger
+ * /user/comment:
+ *   post:
+ *     summary: User bookmark/unbookmark a place
+ *     description: User bookmark/unbookmark a place
+ *     tags: [User]
+ *     schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Rating submitted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Authentication required (no valid access/refresh token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: place not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post(
+  '/rate',
+  idValidator as unknown as RequestHandler,
+  rateValidator as unknown as RequestHandler,
+  validate as RequestHandler,
+  AddRateController as RequestHandler
+)
+/**
+ * @swagger
+ * /user/comment:
+ *   post:
+ *     summary: User bookmark/unbookmark a place
+ *     description: User bookmark/unbookmark a place
+ *     tags: [User]
+ *     schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User profile fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Authentication required (no valid access/refresh token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/user', userController as RequestHandler)
 router.put('/user', editUserController as RequestHandler)
 
