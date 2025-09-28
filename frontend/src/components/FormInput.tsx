@@ -40,7 +40,7 @@ const FormInput: React.FC<FormInputProps> = ({
 
       <div
         className={`flex justify-between items-center gap-2 w-full px-5 py-3  border rounded-full ${
-          error ? 'border-rose-500' : 'border-success'
+          error ? 'border-error' : 'border-success'
         }`}
       >
         <input
