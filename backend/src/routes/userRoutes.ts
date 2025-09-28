@@ -67,6 +67,7 @@ router.post(
   validate as RequestHandler,
   LikeController as RequestHandler
 )
+
 /**
  * @swagger
  * /user/bookmark:
@@ -211,12 +212,13 @@ router.post(
   validate as RequestHandler,
   AddRateController as RequestHandler
 )
+
 /**
  * @swagger
- * /user/comment:
- *   post:
- *     summary: User bookmark/unbookmark a place
- *     description: User bookmark/unbookmark a place
+ * /user/userData:
+ *   get:
+ *     summary: get the user profile data
+ *     description: user profile data
  *     tags: [User]
  *     schema:
  *           type: string
@@ -240,8 +242,44 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/user', userController as RequestHandler)
-router.put('/user', editUserController as RequestHandler)
+router.get('/userData', userController as RequestHandler)
+
+/**
+ * @swagger
+ * /user/editUser:
+ *   patch:
+ *     summary: edit user profile
+ *     description: edit user profile
+ *     tags: [User]
+ *     schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User profile updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Authentication required (no valid access/refresh token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.put('/editUser', editUserController as RequestHandler)
 
 /**
  * @swagger

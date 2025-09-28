@@ -2,13 +2,21 @@ import { body } from 'express-validator'
 
 export const signupValidator = [
   body('name')
+    .exists({ checkFalsy: true })
+    .withMessage('name field is required')
+    .bail()
+    .withMessage('name field is required')
     .trim()
     .notEmpty()
-    .withMessage('Name is required')
+    .withMessage('name field is required')
     .isLength({ min: 2, max: 30 })
     .withMessage('Name must be between 2 and 30 characters'),
 
   body('email')
+    .exists({ checkFalsy: true })
+    .withMessage('email field is required')
+    .bail()
+    .withMessage('Email field is required')
     .trim()
     .notEmpty()
     .withMessage('Email is required')
@@ -16,6 +24,10 @@ export const signupValidator = [
     .withMessage('Email must be valid'),
 
   body('password')
+    .exists({ checkFalsy: true })
+    .withMessage('password field is required')
+    .bail()
+    .withMessage('password field is required')
     .notEmpty()
     .withMessage('Password is required')
     .isLength({ min: 8 })

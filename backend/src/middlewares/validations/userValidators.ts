@@ -35,3 +35,16 @@ export const resendActivateLinkValidator = [
     .isLength({ max: 30 })
     .withMessage('Password must be maximum 30 characters'),
 ]
+
+export const editUserController = [
+  body('name')
+    .exists({ checkFalsy: true })
+    .withMessage('name field is required')
+    .bail()
+    .withMessage('name field is required')
+    .trim()
+    .notEmpty()
+    .withMessage('name field is required')
+    .isLength({ min: 2, max: 30 })
+    .withMessage('Name must be between 2 and 30 characters'),
+]
