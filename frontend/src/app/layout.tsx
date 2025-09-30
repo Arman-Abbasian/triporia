@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto_flex.variable} ${roboto_mono.variable} antialiased h-screen overflow-auto`}
+        className={`${roboto_flex.variable} ${roboto_mono.variable} antialiased h-screen overflow-auto p-4`}
       >
         {children}
       </body>

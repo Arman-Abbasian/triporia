@@ -53,7 +53,7 @@ const FormInput: React.FC<FormInputProps> = ({
               : type
           }
           placeholder={placeholder}
-          dir={'rtl'}
+          dir={'ltr'}
           className={`flex-1 focus:outline-none placeholder:text-xs`}
         />
 
