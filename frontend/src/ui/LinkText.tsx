@@ -1,17 +1,21 @@
 import Link from 'next/link'
 import React, { ReactNode } from 'react'
+import { FaArrowRight } from 'react-icons/fa'
 
 interface LinkTextPropsType {
   text: string
-  icon: ReactNode
+  href: string
 }
 
 function LinkText(props: LinkTextPropsType) {
-  const { text, icon } = props
+  const { text, href } = props
   return (
-    <Link href="/auth/login" className="flex items-center gap-2 p-2 rounded-lg">
+    <Link
+      href={href}
+      className="flex items-center gap-2 p-2 rounded-lg bg-indigo-500 text-white"
+    >
       <p>{text}</p>
-      {icon}
+      <FaArrowRight />
     </Link>
   )
 }
