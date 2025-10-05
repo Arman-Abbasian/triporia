@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { BsPersonAdd } from 'react-icons/bs'
+import { SignupInterface } from '@/@types/services/auth'
 
 export const signupSchema = yup.object({
   name: yup
@@ -43,12 +44,12 @@ function FormSection() {
     resolver: yupResolver(signupSchema),
   })
 
-  const sendDataHanlder = (data) => {
+  const sendDataHandler = (data: SignupInterface) => {
     console.log(data)
   }
   return (
     <form
-      onSubmit={handleSubmit(sendDataHanlder)}
+      onSubmit={handleSubmit(sendDataHandler)}
       className="flex flex-col justify-center items-center w-full gap-10 bg-white/50 backdrop-blur-2xl rounded-lg p-4"
     >
       <BsPersonAdd className="w-36 h-36 text-primary" />
@@ -57,18 +58,21 @@ function FormSection() {
         name="name"
         type="text"
         placeholder="enter your name..."
+        error={errors.name}
       />
       <FormInput
         register={register}
         name="email"
         type="email"
         placeholder="enter your email..."
+        error={errors.email}
       />
       <FormInput
         register={register}
         name="password"
         type="password"
         placeholder="enter your password..."
+        error={errors.password}
       />
       <ButtonComp
         text="sign up"
