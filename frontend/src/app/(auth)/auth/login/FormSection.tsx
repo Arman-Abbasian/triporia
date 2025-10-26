@@ -33,7 +33,7 @@ function FormSection() {
   return (
     <form
       onSubmit={handleSubmit(sendDataHandler)}
-      className="flex flex-col justify-center items-center w-full gap-10 bg-white/50 backdrop-blur-2xl rounded-lg p-4"
+      className="authFormsContainer"
     >
       <BsPersonAdd className="w-36 h-36 text-primary" />
       <FormInput

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Roboto_Flex, Roboto_Mono } from 'next/font/google'
 import '../styles/globals.css'
+import { Providers } from '@/configs/redux'
 
 const roboto_flex = Roboto_Flex({
   variable: '--font-roboto-flex',
@@ -26,8 +27,13 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${roboto_flex.variable} ${roboto_mono.variable} antialiased h-screen overflow-auto p-4`}
+        style={{
+          backgroundImage: 'url(/images/background.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
